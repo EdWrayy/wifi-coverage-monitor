@@ -1,18 +1,6 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
-
-// =========================
-// USER SETTINGS
-// =========================
-const char* WIFI_SSID = "YOUR_WIFI_NAME";
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
-
-// IP address of the machine running Mosquitto
-const char* MQTT_BROKER = "192.168.1.100";
-const int MQTT_PORT = 1883;
-
-// Change this per ESP32 node
-const char* NODE_ID = "esp32_node_1";
+#include "config.h"
 
 // Publish interval in milliseconds
 const unsigned long PUBLISH_INTERVAL = 5000;

@@ -21,6 +21,9 @@ build/
 .env
 .env.*
 
+# Arduino secrets
+nodes/**/config.h
+
 # Arduino build artifacts
 *.elf
 *.bin
