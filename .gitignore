@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Logs and data
+*.log
+*.csv
+*.db
+*.sqlite
+
+# Environment variables
+.env
+.env.*
+
+# Arduino build artifacts
+*.elf
+*.bin
+*.hex
+build/
+
+# Windows
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
