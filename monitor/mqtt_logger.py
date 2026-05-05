@@ -1,8 +1,12 @@
+import os
 import paho.mqtt.client as mqtt
+from dotenv import load_dotenv
 
-MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
-MQTT_TOPIC = "wifi/nodes/+/rssi"
+load_dotenv()
+
+MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
+MQTT_PORT = int(os.getenv("MQTT_PORT", 1883))
+MQTT_TOPIC = os.getenv("MQTT_TOPIC", "wifi/nodes/+/rssi")
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:

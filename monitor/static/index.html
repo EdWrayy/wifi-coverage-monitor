@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WiFi Coverage Monitor</title>
+    <style>
+        body  { font-family: monospace; padding: 24px; background: #111; color: #ddd; }
+        h1    { font-size: 1.1rem; margin-bottom: 20px; color: #aaa; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { padding: 8px 14px; text-align: left; border-bottom: 1px solid #222; }
+        th    { color: #555; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 4px; font-weight: bold; }
+        .strong    { background: #14532d; color: #4ade80; }
+        .medium    { background: #422006; color: #fb923c; } /* intentionally amber/orange */
+        .weak      { background: #431407; color: #f87171; }
+        .very-weak { background: #3b0764; color: #c084fc; }
+        .offline   { background: #1f1f1f; color: #555; }
+
+        .name-cell { color: #eee; }
+        .name-cell:focus { outline: 1px solid #444; background: #1a1a1a; padding: 2px 4px; }
+    </style>
+</head>
+<body>
+    <h1>WiFi Coverage Monitor</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Device ID</th>
+                <th>Name</th>
+                <th>RSSI</th>
+                <th>Status</th>
+                <th>IP</th>
+                <th>Uptime</th>
+                <th>Last Seen</th>
+            </tr>
+        </thead>
+        <tbody id="nodes"></tbody>
+    </table>
+
+    <script>
+        function rssiClass(rssi) {
+            if (rssi >= -67) return ['strong',    'Strong'];
+            if (rssi >= -70) return ['medium',    'Medium'];
+            if (rssi >= -80) return ['weak',      'Weak'];
+                             return ['very-weak', 'Very Weak'];
+        }
+
+        function uptime(ms) {
+            const s = Math.floor(ms / 1000);
+            const h = Math.floor(s / 3600);
+            const m = Math.floor((s % 3600) / 60);
+            const sec = s % 60;
+            return `${h}h ${m}m ${sec}s`;
+        }
+
+        function timeSince(iso) {
+            const secs = Math.floor((Date.now() - new Date(iso)) / 1000);
+            if (secs < 60) return `${secs}s ago`;
+            return `${Math.floor(secs / 60)}m ${secs % 60}s ago`;
+        }
+
+        function getName(id)       { return localStorage.getItem('name:' + id) || ''; }
+        function saveName(id, val) { localStorage.setItem('name:' + id, val); }
+
+        function render(data) {
+            const tbody = document.getElementById('nodes');
+
+            for (const [id, node] of Object.entries(data)) {
+                const age     = (Date.now() - new Date(node.last_seen)) / 1000;
+                const offline = age > 15;
+
+                let row = tbody.querySelector(`tr[data-id="${id}"]`);
+                if (!row) {
+                    row = document.createElement('tr');
+                    row.dataset.id = id;
+                    row.innerHTML = `
+                        <td>${id}</td>
+                        <td class="name-cell" contenteditable="true"></td>
+                        <td class="rssi-cell"></td>
+                        <td class="status-cell"></td>
+                        <td class="ip-cell"></td>
+                        <td class="uptime-cell"></td>
+                        <td class="time-cell"></td>
+                    `;
+                    row.querySelector('.name-cell').addEventListener('blur', e => {
+                        saveName(id, e.target.textContent.trim());
+                    });
+                    tbody.appendChild(row);
+                }
+
+                const nameCell = row.querySelector('.name-cell');
+                if (document.activeElement !== nameCell) {
+                    nameCell.textContent = getName(id);
+                }
+
+                if (offline) {
+                    row.querySelector('.rssi-cell').innerHTML   = `<span class="badge offline">—</span>`;
+                    row.querySelector('.status-cell').textContent = 'Offline';
+                } else {
+                    const [cls, label] = rssiClass(node.rssi);
+                    row.querySelector('.rssi-cell').innerHTML     = `<span class="badge ${cls}">${node.rssi} dBm</span>`;
+                    row.querySelector('.status-cell').textContent = label;
+                }
+
+                row.querySelector('.ip-cell').textContent     = node.ip     || '—';
+                row.querySelector('.uptime-cell').textContent = node.millis != null ? uptime(node.millis) : '—';
+                row.querySelector('.time-cell').textContent   = timeSince(node.last_seen);
+            }
+        }
+
+        async function poll() {
+            try {
+                const res = await fetch('/api/nodes');
+                render(await res.json());
+            } catch (e) {
+                console.error('Poll failed:', e);
+            }
+        }
+
+        poll();
+        setInterval(poll, 2000);
+    </script>
+</body>
+</html>
