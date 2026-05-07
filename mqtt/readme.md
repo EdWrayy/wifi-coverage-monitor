@@ -10,7 +10,7 @@ This project uses a custom `mosquitto.conf` file for the local MQTT broker setup
 4. Run Mosquitto as a background process:
 
 ```powershell
-Start-Process .\mosquitto.exe -ArgumentList "-c .\mosquitto.conf -v"
+.\mosquitto.exe -c .\mosquitto.conf -v
 ```
 
 ## Stopping the Broker
